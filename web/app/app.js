@@ -15,6 +15,8 @@ navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia 
 
 loadFrozenModel(MODEL_URL, WEIGHTS_URL).then(main)
 
+let ids = []
+
 function main(model) {
   console.log('Get model!')
   navigator.getUserMedia({audio: false, video: true}, successCallback, errorCallback)
@@ -47,8 +49,19 @@ function main(model) {
       const res = model.execute({
         'squeeze_net/face_input': tf.fromPixels(data).reshape([1, 200, 200, 3]).asType('float32')
       })
-      res.print()
-      console.log(res.dataSync())
+      // res.print()
+      // console.log(res.dataSync()[0])
+      ids.push(res.dataSync())
+
+      if (ids.length > 1) {
+        for (let i = 1; i < ids.length; i++) {
+          let sum = 0
+          for (let j = 0; j < 128; j++) {
+            sum += Math.pow(ids[i][j] - ids[i - 1][j], 2)
+          }
+          console.log(sum)
+        }
+      }
     })
 
   }
