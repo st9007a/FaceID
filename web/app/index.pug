@@ -1,9 +1,11 @@
 doctype html
 html
   head
+    meta(name="viewport" content="width=device-width initial-scale=0.5")
+    link(rel='stylesheet' type='text/css' href='app.css')
   body
-    h1 test
-    video(autoplay playsinline)
     canvas
-    button Take a snapshot
+    .lock
+      video(autoplay playsinline)
+      .ui.massive.teal.button Capture Your Face ID
     script(src='app.js')
