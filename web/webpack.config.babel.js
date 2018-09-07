@@ -2,7 +2,7 @@ import autoprefixer from 'autoprefixer'
 import { resolve } from 'path'
 
 const config = {
-  mode: 'production',
+  mode: 'development',
   context: resolve('app'),
   entry: './app.js',
   module: {

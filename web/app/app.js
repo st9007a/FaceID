@@ -1,12 +1,12 @@
 import './index.pug'
-console.log('aa')
-// import * as tf from '@tensorflow/tfjs'
-// import { loadFrozenModel } from '@tensorflow/tfjs-converter'
-//
-// const MODEL_URL = 'https://.../mobilenet/web_model.pb';
-// const WEIGHTS_URL = 'https://.../mobilenet/weights_manifest.json';
 
+import * as tf from '@tensorflow/tfjs'
+import { loadFrozenModel } from '@tensorflow/tfjs-converter'
 
+const MODEL_URL = './model/tensorflowjs_model.pb'
+const WEIGHTS_URL = './model/weights_manifest.json'
+
+const model = loadFrozenModel(MODEL_URL, WEIGHTS_URL).then(() => console.log('done!'))
 /*
 document.getElementsByTagName('h1')[0].textContent = '1';
 if (!('navigator' in window)) {
