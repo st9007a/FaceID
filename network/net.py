@@ -43,7 +43,7 @@ def squeeze_net(x):
 
     out = tf.layers.dense(out, 128, name = 'dense2')
 
-    out = tf.nn.l2_normalize(out, axis = 1)
+    out = tf.nn.l2_normalize(out, axis = 1, name = 'face_output')
 
     return out
 

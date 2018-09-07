@@ -42,7 +42,6 @@ def next_batch(batch_size):
 
     filenames = glob('data3/*')
     random.shuffle(filenames)
-    print(filenames)
 
     dataset = tf.data.TFRecordDataset(filenames)
     dataset = dataset.map(parse_fn, num_parallel_calls = 8)
@@ -74,11 +73,11 @@ if __name__ == '__main__':
 
     saver = tf.train.Saver()
 
-    for i in range(1, 100001):
+    for i in range(1, 8001):
 
         loss_val, _  = sess.run([loss, train_step])
 
         if i % 100 == 0:
-            print(np.mean(loss_val))
+            print(i, np.mean(loss_val))
 
             saver.save(sess, 'models/alpha-1.1/model.ckpt')
