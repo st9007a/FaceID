@@ -5,7 +5,12 @@ html
     link(rel='stylesheet' type='text/css' href='app.css')
   body
     canvas
-    .lock
+    #unlock
+      .top
+        h1.ui.inverted.header#message Hello !
+      .ui.massive.red.button#relock Lock Again
+    #lock
       video(autoplay playsinline)
-      .ui.massive.teal.button Capture Your Face ID
+      .ui.massive.teal.button#capture Capture Your Face ID
+      .ui.massive.blue.button#validate Validate
     script(src='app.js')

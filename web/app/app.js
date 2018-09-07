@@ -18,7 +18,12 @@ const canvas = document.getElementsByTagName('canvas')[0]
 const width = 640
 const height = 480
 
+let faceCollection = []
+let faceId = null
+
 let isCapture = false
+let isValidate = false
+let captureProcess = null
 
 video.setAttribute('width', width)
 video.setAttribute('height', height)
@@ -29,6 +34,12 @@ navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia 
 
 loadFrozenModel(MODEL_URL, WEIGHTS_URL).then(main)
 
+
+function shapshot() {
+  const context = canvas.getContext('2d')
+  context.drawImage(video, 0, 0, width, height)
+  return tf.fromPixels(context.getImageData(140, 220, 200, 200))
+}
 
 function main(model) {
   const successCallback = (stream) => {
@@ -41,24 +52,84 @@ function main(model) {
 
   navigator.getUserMedia({audio: false, video: true}, successCallback, errorCallback)
 
-  $('.ui.button').click(e => {
+  $('#capture').click(e => {
 
     $(e.currentTarget).toggleClass('teal').toggleClass('red')
     isCapture = !isCapture
 
-    $(e.currentTarget).text(isCapture ? 'Stop' : 'Capture Your Face ID')
+    if (isCapture) {
+      $(e.currentTarget).text('Stop')
+      captureProcess = setInterval(() => faceCollection.push(shapshot()), 500)
+    } else {
+      clearInterval(captureProcess)
 
+      $(e.currentTarget).text('Build Your Face ID ... ').ready(() => {
+        const res = model.execute({
+          'squeeze_net/face_input': tf.stack(faceCollection).asType('float32')
+        })
 
-    // const context = canvas.getContext('2d')
-    // context.drawImage(video, 0, 0, width, height)
-    //
-    // const data = context.getImageData(140, 220, 200, 200)
-    //
-    // const res = model.execute({
-    //   'squeeze_net/face_input': tf.fromPixels(data).reshape([1, 200, 200, 3]).asType('float32')
-    // })
-    //
-    // res.dataSync()
+        faceId = res.dataSync()
+
+        // $(e.currentTarget).text('Capture Your Face ID')
+        $(e.currentTarget).text(faceId.length / 128)
+        console.log(faceId.length / 128)
+
+        faceCollection.length = 0
+      })
+
+    }
   })
 
+  $('#validate').click(e => {
+    if (!faceId || faceId.length === 0) {
+      alert('You don\'t have face id.')
+    }
+
+    if (isCapture) {
+      return
+    }
+
+    $(e.currentTarget).toggleClass('blue').toggleClass('red')
+    isValidate = !isValidate
+
+    if (isValidate) {
+      $(e.currentTarget).text('Stop validate').ready(() => {
+
+        captureProcess = setInterval(() => {
+          const res = model.execute({
+            'squeeze_net/face_input': shapshot().expandDims().asType('float32')
+          })
+          const target = res.dataSync()
+
+          let dist = 0
+          let vote = 0
+
+          for (let i = 0; i < faceId.length; i++) {
+            if (i % 128 === 0 && i != 0) {
+              vote += Math.sqrt(dist) < 0.8 ? 1 : 0
+              dist = 0
+            }
+
+            dist += Math.pow(faceId[i] - target[i % 128], 2)
+          }
+          console.log(vote)
+
+          if (vote >= faceId.length / 128 * 0.5) {
+            $('#validate').click()
+            $('#lock').transition('scale')
+            $('#unlock').transition('scale')
+          }
+        }, 500)
+      })
+
+    } else {
+      clearInterval(captureProcess)
+      $(e.currentTarget).text('Validate')
+    }
+  })
+
+  $('#relock').click(e => {
+    $('#lock').transition('scale')
+    $('#unlock').transition('scale')
+  })
 }
