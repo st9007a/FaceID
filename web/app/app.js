@@ -15,8 +15,8 @@ const WEIGHTS_URL = './model/weights_manifest.json'
 const video = document.getElementsByTagName('video')[0]
 const canvas = document.getElementsByTagName('canvas')[0]
 
-const width = 640
-const height = 480
+const width = 320
+const height = 240
 
 let faceCollection = []
 let faceId = null
@@ -38,7 +38,7 @@ loadFrozenModel(MODEL_URL, WEIGHTS_URL).then(main)
 function shapshot() {
   const context = canvas.getContext('2d')
   context.drawImage(video, 0, 0, width, height)
-  return tf.fromPixels(context.getImageData(140, 220, 200, 200))
+  return tf.fromPixels(context.getImageData(220, 140, 200, 200))
 }
 
 function main(model) {
@@ -67,7 +67,7 @@ function main(model) {
       $(e.currentTarget).text('Build Your Face ID ... ').ready(() => {
 
         const res = model.execute({
-          'squeeze_net/face_input': tf.cast(tf.stack(faceCollection), 'float32')
+          'squeeze_net/face_input': tf.cast(tf.transpose(tf.stack(faceCollection), [0, 2, 1, 3]), 'float32')
         })
 
         faceId = res.dataSync()
@@ -99,7 +99,7 @@ function main(model) {
 
         captureProcess = setInterval(() => {
           const res = model.execute({
-            'squeeze_net/face_input': shapshot().expandDims().asType('float32')
+            'squeeze_net/face_input': tf.transpose(shapshot().expandDims(), [0, 2, 1, 3]).asType('float32')
           })
           const target = res.dataSync()
 

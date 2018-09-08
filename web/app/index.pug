@@ -1,17 +1,20 @@
 doctype html
 html
   head
-    meta(name="viewport" content="width=device-width initial-scale=0.5")
+    meta(name="viewport" content="width=device-width initial-scale=1")
     link(rel='stylesheet' type='text/css' href='app.css')
   body
     canvas
     #unlock
       .top
         h1.ui.inverted.header#message Hello !
-      .ui.massive.red.button#relock Lock Again
+      .ui.red.button#relock Lock Again
     #lock
-      video(autoplay playsinline)
+      .video-region
+        .video
+          .mask
+          video(autoplay playsinline)
       .buttons
-        .ui.massive.teal.button#capture Capture Your Face ID
-        .ui.massive.blue.button#validate Validate
+        .ui.teal.button#capture Capture Your Face ID
+        .ui.blue.button#validate Validate
     script(src='app.js')
