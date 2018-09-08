@@ -7,7 +7,6 @@ import * as tf from '@tensorflow/tfjs'
 import { loadFrozenModel } from '@tensorflow/tfjs-converter'
 
 window.$ = window.jQuery = require('jquery')
-require('semantic-ui-offline/semantic.js')
 
 const MODEL_URL = './model/tensorflowjs_model.pb'
 const WEIGHTS_URL = './model/weights_manifest.json'
@@ -38,7 +37,8 @@ loadFrozenModel(MODEL_URL, WEIGHTS_URL).then(main)
 function shapshot() {
   const context = canvas.getContext('2d')
   context.drawImage(video, 0, 0, width, height)
-  return tf.fromPixels(context.getImageData(220, 140, 200, 200))
+  // tf.fromPixels(context.getImageData(60, 20, 200, 200)).print(1)
+  return tf.fromPixels(context.getImageData(60, 20, 200, 200))
 }
 
 function main(model) {
@@ -67,7 +67,7 @@ function main(model) {
       $(e.currentTarget).text('Build Your Face ID ... ').ready(() => {
 
         const res = model.execute({
-          'squeeze_net/face_input': tf.cast(tf.transpose(tf.stack(faceCollection), [0, 2, 1, 3]), 'float32')
+          'squeeze_net/face_input': tf.cast(tf.stack(faceCollection), 'float32')
         })
 
         faceId = res.dataSync()
@@ -99,7 +99,7 @@ function main(model) {
 
         captureProcess = setInterval(() => {
           const res = model.execute({
-            'squeeze_net/face_input': tf.transpose(shapshot().expandDims(), [0, 2, 1, 3]).asType('float32')
+            'squeeze_net/face_input': tf.cast(shapshot().expandDims(), 'float32')
           })
           const target = res.dataSync()
 
@@ -119,8 +119,8 @@ function main(model) {
 
           if (vote >= faceId.length / 128 * 0.8) {
             $('#validate').click()
-            $('#lock').transition('scale')
-            $('#unlock').transition('scale')
+            $('#lock').fadeOut('slow')
+            $('#unlock').fadeIn('slow')
           }
         }, 500)
       })
@@ -132,7 +132,7 @@ function main(model) {
   })
 
   $('#relock').click(e => {
-    $('#lock').transition('scale')
-    $('#unlock').transition('scale')
+    $('#unlock').fadeOut('slow')
+    $('#lock').fadeIn('slow')
   })
 }
