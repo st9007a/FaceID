@@ -63,9 +63,11 @@ function main(model) {
     } else {
       clearInterval(captureProcess)
 
+
       $(e.currentTarget).text('Build Your Face ID ... ').ready(() => {
+
         const res = model.execute({
-          'squeeze_net/face_input': tf.stack(faceCollection).asType('float32')
+          'squeeze_net/face_input': tf.cast(tf.stack(faceCollection), 'float32')
         })
 
         faceId = res.dataSync()
@@ -106,6 +108,7 @@ function main(model) {
 
           for (let i = 0; i < faceId.length; i++) {
             if (i % 128 === 0 && i != 0) {
+              console.log(dist)
               vote += Math.sqrt(dist) < 0.8 ? 1 : 0
               dist = 0
             }
@@ -114,7 +117,7 @@ function main(model) {
           }
           console.log(vote)
 
-          if (vote >= faceId.length / 128 * 0.5) {
+          if (vote >= faceId.length / 128 * 0.8) {
             $('#validate').click()
             $('#lock').transition('scale')
             $('#unlock').transition('scale')
