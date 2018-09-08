@@ -29,16 +29,16 @@ video.setAttribute('height', height)
 canvas.setAttribute('width', width)
 canvas.setAttribute('height', height)
 
-navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia
+navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia
 
-loadFrozenModel(MODEL_URL, WEIGHTS_URL).then(main)
-
+loadFrozenModel(MODEL_URL, WEIGHTS_URL).then(main).catch(err => alert(err))
 
 function shapshot() {
   const context = canvas.getContext('2d')
   context.drawImage(video, 0, 0, width, height)
   // tf.fromPixels(context.getImageData(60, 20, 200, 200)).print(1)
-  return tf.fromPixels(context.getImageData(60, 20, 200, 200))
+  // return tf.fromPixels(context.getImageData(60, 20, 200, 200))
+  return context.getImageData(60, 20, 200, 200)
 }
 
 function main(model) {
@@ -63,14 +63,12 @@ function main(model) {
     } else {
       clearInterval(captureProcess)
 
-
       $(e.currentTarget).text('Build Your Face ID ... ').ready(() => {
 
-        const res = model.execute({
-          'squeeze_net/face_input': tf.cast(tf.stack(faceCollection), 'float32')
-        })
+        const input = tf.tidy(() => tf.cast(tf.stack(faceCollection.map(el => tf.fromPixels(el))), 'float32'))
+        const output = model.execute({ 'squeeze_net/face_input': input })
 
-        faceId = res.dataSync()
+        faceId = output.dataSync()
 
         // $(e.currentTarget).text('Capture Your Face ID')
         $(e.currentTarget).text(faceId.length / 128)
@@ -98,26 +96,28 @@ function main(model) {
       $(e.currentTarget).text('Stop validate').ready(() => {
 
         captureProcess = setInterval(() => {
-          const res = model.execute({
-            'squeeze_net/face_input': tf.cast(shapshot().expandDims(), 'float32')
-          })
-          const target = res.dataSync()
+          const input = tf.tidy(() => tf.cast(tf.fromPixels(shapshot()).expandDims(), 'float32'))
+          const output = model.execute({ 'squeeze_net/face_input': input })
+
+          const target = output.dataSync()
 
           let dist = 0
           let vote = 0
 
           for (let i = 0; i < faceId.length; i++) {
-            if (i % 128 === 0 && i != 0) {
+
+            dist += Math.pow(faceId[i] - target[i % 128], 2)
+
+            if (i % 128 === 127) {
               console.log(dist)
               vote += Math.sqrt(dist) < 0.8 ? 1 : 0
               dist = 0
             }
 
-            dist += Math.pow(faceId[i] - target[i % 128], 2)
           }
           console.log(vote)
 
-          if (vote >= faceId.length / 128 * 0.8) {
+          if (vote >= faceId.length / 128 * 0.75) {
             $('#validate').click()
             $('#lock').fadeOut('slow')
             $('#unlock').fadeIn('slow')
