@@ -12,7 +12,7 @@ if __name__ == '__main__':
 
     with tf.variable_scope('squeeze_net'):
         face_input = tf.placeholder(tf.float32, [None, 200, 200, 3], name = 'face_input')
-        face_output = squeeze_net(face_input)
+        face_output = squeeze_net(face_input, training = False)
 
     sess = tf.Session()
     saver = tf.train.Saver()

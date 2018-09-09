@@ -10,12 +10,12 @@ if __name__ == '__main__':
     face_data = np.load('test/test.npy').astype(float)
 
     with tf.variable_scope('squeeze_net'):
-        face_output = squeeze_net(face_input)
+        face_output = squeeze_net(face_input, training = False)
 
     sess = tf.Session()
     saver = tf.train.Saver()
 
-    saver.restore(sess, 'models/test/model.ckpt')
+    saver.restore(sess, 'models/alpha-1.2/model.ckpt')
 
     face_id = sess.run(face_output, feed_dict = {face_input: face_data})
 

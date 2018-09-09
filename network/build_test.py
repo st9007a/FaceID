@@ -9,6 +9,7 @@ def get_image_nparray(file_name):
     img.thumbnail((640, 480))
 
     img = np.asarray(img)
+    print(img.shape)
 
     return img[140:340, 220:420, 0:3]
 
