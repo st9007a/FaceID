@@ -110,7 +110,7 @@ function main(model) {
 
             if (i % 128 === 127) {
               console.log(dist)
-              vote += Math.sqrt(dist) < 0.8 ? 1 : 0
+              vote += Math.sqrt(dist) < 0.9 ? 1 : 0
               dist = 0
             }
 
