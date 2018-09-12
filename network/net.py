@@ -51,27 +51,32 @@ def squeeze_net(x, training):
 
 def inverted_residual(x, name, expand_factor, output_channels, subsample = False, training = True):
 
+    input_cnahhels = int(x.get_shape()[3])
     expand_channels = expand_factor * int(x.get_shape()[3])
     strides = 2 if subsample else 1
 
     with tf.variable_scope(name):
 
-        # out = tf.layers.conv2d(
-        #     x,
-        #     filters =  expand_channels,
-        #     kernel_size = 1,
-        #     name = 'conv_1x1',
-        # )
-        #
-        # out = tf.layers.batch_normalization(out, training = training, name = 'bn1')
-        # out = tf.nn.relu6(out)
+        depthwise_weight = tf.get_variable(
+            name = 'depthwise_conv_weight',
+            initializer = tf.truncated_normal(shape = (3, 3, expand_channels, 1), stddev = 0.1),
+        )
 
-        out = tf.layers.separable_conv2d(
+        out = tf.layers.conv2d(
             x,
             filters = expand_channels,
-            kernel_size = 3,
-            padding = 'same',
-            strides = strides,
+            kernel_size = 1,
+            name = 'conv_1x1',
+        )
+
+        out = tf.layers.batch_normalization(out, training = training, name = 'bn1')
+        out = tf.nn.relu6(out)
+
+        out = tf.nn.depthwise_conv2d(
+            out,
+            filter = depthwise_weight,
+            padding = 'SAME',
+            strides = (1, strides, strides, 1),
             name = 'depth_conv_3x3'
         )
 
