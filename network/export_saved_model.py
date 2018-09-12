@@ -3,16 +3,16 @@ import numpy as np
 import tensorflow as tf
 import sys
 
-from net import squeeze_net
+from net import mobile_net_v2
 
 if __name__ == '__main__':
 
     import_dir = sys.argv[1]
     export_dir = sys.argv[2]
 
-    with tf.variable_scope('squeeze_net'):
+    with tf.variable_scope('mobile_net_v2'):
         face_input = tf.placeholder(tf.float32, [None, 200, 200, 3], name = 'face_input')
-        face_output = squeeze_net(face_input, training = False)
+        face_output = mobile_net_v2(face_input, training = False)
 
     sess = tf.Session()
     saver = tf.train.Saver()

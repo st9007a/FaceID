@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import sys
 import numpy as np
 import tensorflow as tf
 import random
@@ -51,13 +52,15 @@ def next_batch(batch_size):
 
 if __name__ == '__main__':
 
-    x1, x2, y = next_batch(128)
+    save_path = '%s/model.ckpt' % sys.argv[1]
+
+    x1, x2, y = next_batch(96)
     y = tf.reshape(y, [-1])
 
-    with tf.variable_scope('squeeze_net'):
+    with tf.variable_scope('mobile_net_v2'):
         out1 = mobile_net_v2(x1, training = True)
 
-    with tf.variable_scope('squeeze_net', reuse = True):
+    with tf.variable_scope('mobile_net_v2', reuse = True):
         out2 = mobile_net_v2(x2, training = True)
 
     print_num_of_var()
@@ -66,9 +69,10 @@ if __name__ == '__main__':
 
     loss = (1.0 - y) * tf.square(euclidean_distance) + y * tf.square(tf.maximum(0.0, 1.0 - euclidean_distance))
 
-    global_step = tf.Variable(0, trainable = False)
-    learning_rate = tf.train.exponential_decay(0.05, global_step, 200, 0.9, staircase = True)
-    train_step = tf.train.RMSPropOptimizer(learning_rate, momentum = 0.9).minimize(loss, global_step = global_step)
+    # global_step = tf.Variable(0, trainable = False)
+    # learning_rate = tf.train.exponential_decay(0.05, global_step, 200, 0.9, staircase = True)
+    with tf.control_dependencies(tf.get_collection(tf.GraphKeys.UPDATE_OPS)):
+        train_step = tf.train.AdamOptimizer(0.001).minimize(loss)
 
     sess = tf.Session()
     sess.run(tf.global_variables_initializer())
@@ -82,4 +86,4 @@ if __name__ == '__main__':
         if i % 100 == 0:
             print(i, np.mean(loss_val))
 
-            saver.save(sess, 'models/alpha-2.0/model.ckpt')
+            saver.save(sess, save_path)
