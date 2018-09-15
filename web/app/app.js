@@ -66,7 +66,7 @@ function main(model) {
       $(e.currentTarget).text('Build Your Face ID ... ').ready(() => {
 
         const input = tf.tidy(() => tf.cast(tf.stack(faceCollection.map(el => tf.fromPixels(el))), 'float32'))
-        const output = model.execute({ 'squeeze_net/face_input': input })
+        const output = model.execute({ 'mobile_net_v2/face_input': input })
 
         faceId = output.dataSync()
 
@@ -97,7 +97,7 @@ function main(model) {
 
         captureProcess = setInterval(() => {
           const input = tf.tidy(() => tf.cast(tf.fromPixels(shapshot()).expandDims(), 'float32'))
-          const output = model.execute({ 'squeeze_net/face_input': input })
+          const output = model.execute({ 'mobile_net_v2/face_input': input })
 
           const target = output.dataSync()
 
