@@ -54,7 +54,7 @@ if __name__ == '__main__':
 
     save_path = '%s/model.ckpt' % sys.argv[1]
 
-    x1, x2, y = next_batch(96)
+    x1, x2, y = next_batch(200)
     y = tf.reshape(y, [-1])
 
     with tf.variable_scope('mobile_net_v2'):
@@ -79,7 +79,7 @@ if __name__ == '__main__':
 
     saver = tf.train.Saver()
 
-    for i in range(1, 10001):
+    for i in range(1, 15001):
 
         loss_val, _  = sess.run([loss, train_step])
 
