@@ -50,6 +50,77 @@ def next_batch(batch_size):
 
     return dataset.make_one_shot_iterator().get_next()
 
+def online_batch(batch_size):
+
+    def read_image(image1, image2, label):
+
+        image1 = tf.images.decode_bmp(image1, channels = 3)
+        image2 = tf.images.decode_bmp(image2, channels = 3)
+
+        return image1, image2, label
+
+    image1 = tf.placeholder(tf.string, [None])
+    image2  = tf.placeholder(tf.string, [None])
+    label  = tf.placeholder(tf.float32, [None])
+
+    dataset = tf.data.Dataset.from_tensor_slices((image1, image2, label))
+    dataset = dataset.map(read_image, num_parallel_calls = 8)
+    dataset = dataset.shuffle(5000).repeat(1).batch(batch_size)
+
+    iterator = dataset.make_initializable_iterator()
+
+    return iterator, image1, image2, label
+
+# Generate image pairs and bounding box index
+#
+# @input:
+#   data_size(int): the count of image pairs
+#
+# @output:
+#   image1(numpy, shape = (data_size, ), dtype = string): first image path
+#   image2(numpy, shape = (data_size, ), dtype = string): second image path
+#   label (numpy, shape = (data_size, ), dtype = float): match or mismatch of image paires
+#   boxes1(numpy, shape = (data_size, ), dtype = int): bounding box index of first image
+#   boxes2(numpy, shape = (data_size, ), dtype = int): bounding box index of second image
+def generate_meta_data(data_size):
+    image1 = []
+    image2 = []
+    label = []
+
+    for i in range(data_size // 2):
+        folder = random.randint(0, 25)
+
+        candidate1 = random.randint(0, 50)
+        candidate2 = random.randint(0, 50)
+
+        while candidate2 == candidate1:
+            candidate2 = random.randint(0, 50)
+
+        image1.append('data4/%02d/%02d.bmp' % (folder, candidate1))
+        image2.append('data4/%02d/%02d.bmp' % (folder, candidate2))
+        label.append(0)
+
+    for i in range(data_size - (data_size // 2)):
+        folder1 = random.randint(0, 25)
+        folder2 = random.randint(0, 25)
+
+        while folder2 == folder1:
+            folder2 = random.randint(0, 25)
+
+        candidate1 = random.randint(0, 50)
+        candidate2 = random.randint(0, 50)
+
+        image1.append('data4/%02d/%02d.bmp' % (folder1, candidate1))
+        image2.append('data4/%02d/%02d.bmp' % (folder2, candidate2))
+        label.append(1)
+
+    return (
+        np.array(image1), np.array(image2), np.array(label).astype(float),
+        np.floor(np.random.uniform(0, 27, data_size)).astype(int),
+        np.floor(np.random.uniform(0, 27, data_size)).astype(int)
+    )
+
+
 if __name__ == '__main__':
 
     save_path = '%s/model.ckpt' % sys.argv[1]
@@ -69,8 +140,6 @@ if __name__ == '__main__':
 
     loss = (1.0 - y) * tf.square(euclidean_distance) + y * tf.square(tf.maximum(0.0, 1.0 - euclidean_distance))
 
-    # global_step = tf.Variable(0, trainable = False)
-    # learning_rate = tf.train.exponential_decay(0.05, global_step, 200, 0.9, staircase = True)
     with tf.control_dependencies(tf.get_collection(tf.GraphKeys.UPDATE_OPS)):
         train_step = tf.train.AdamOptimizer(0.001).minimize(loss)
 

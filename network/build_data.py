@@ -1,34 +1,48 @@
 #!/usr/bin/env python3
+import sys
 import numpy as np
 import random
 import tensorflow as tf
+import random
+import math
 
 from glob import glob
 from PIL import Image
 
+export_dir = sys.argv[1]
+
+scale = 0.5
+resize = 220
+
+height = 960
+width = 1280
+
 def get_image_nparray(file_name):
 
+    resize_width = math.floor(width * scale)
+    resize_height = math.floor(height * scale)
+
     img = Image.open(file_name)
-    img.thumbnail((640, 480))
+    img.thumbnail((resize_width, resize_height))
 
     img = np.asarray(img)
 
-    return img[140:340, 220:420, 0:3]
+    return img[(resize_height - resize) // 2: (resize_height + resize) // 2, (resize_width - resize) // 2: (resize_width + resize) // 2, 0:3]
 
 def write_tfrecord(x1, x2, y, writer = None, size = 0, idx = 0):
 
     if writer == None:
-        writer = tf.python_io.TFRecordWriter('data3/%d.tfrecord' % idx)
+        writer = tf.python_io.TFRecordWriter('%s/%d.tfrecord' % (export_dir, idx))
 
     elif size == 500:
         print('Done %d' % idx)
         writer.close()
-        writer = tf.python_io.TFRecordWriter('data3/%d.tfrecord' % (idx + 1))
+        writer = tf.python_io.TFRecordWriter('%s/%d.tfrecord' % (export_dir, (idx + 1)))
         idx += 1
         size = 0
 
-    x1 = np.reshape(x1, [200 * 200 * 3]).tobytes()
-    x2 = np.reshape(x2, [200 * 200 * 3]).tobytes()
+    x1 = np.reshape(x1, [resize * resize * 3]).tobytes()
+    x2 = np.reshape(x2, [resize * resize * 3]).tobytes()
 
     example = tf.train.Example(features=tf.train.Features(feature = {
         'x1': tf.train.Feature(bytes_list = tf.train.BytesList(value = [x1])),
@@ -92,12 +106,13 @@ if __name__ == '__main__':
 
     for file_dir in couple:
 
-        for c in couple[file_dir]:
+        for i in range(1, 18):
 
-            data = []
+            img1 = get_image_nparray('%s/%03d_1_c.bmp' % (file_dir, i))
 
-            for i in range(1, 18):
-                img1 = get_image_nparray('%s/%03d_1_c.bmp' % (file_dir, i))
+            for c in couple[file_dir]:
+
+                data = []
 
                 for j in range(1, 18):
 
