@@ -22,6 +22,8 @@ def resize_and_save(file_name, save_name):
 
     img = Image.open(file_name)
     img.thumbnail((resize_width, resize_height))
+    img = Image.fromarray(np.asarray(img)[:, :, 0:3])
+
     img = img.crop((
         (resize_width - resize) // 2,
         (resize_height - resize) // 2,
@@ -29,7 +31,7 @@ def resize_and_save(file_name, save_name):
         (resize_height + resize) // 2
     ))
 
-    img.save(save_name)
+    img.save(save_name, 'bmp')
 
 if __name__ == '__main__':
 
