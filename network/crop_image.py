@@ -10,7 +10,7 @@ from PIL import Image
 export_dir = sys.argv[1]
 
 scale = 0.5
-resize = 220
+resize = 240
 
 height = 960
 width = 1280

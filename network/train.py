@@ -21,55 +21,37 @@ def print_num_of_var():
 
     print('Total variables:', total_variables)
 
-def next_batch(batch_size):
+def get_image_dataset():
 
-    def parse_fn(example_proto):
+    def map_fn(filename):
+        img_string = tf.read_file(filename)
+        img_decoded = tf.image.decode_bmp(img_string)
+        img_resize = tf.reshape(img_decoded, [240, 240, 3])
 
-        features = {
-            'x1': tf.FixedLenFeature((), tf.string),
-            'x2': tf.FixedLenFeature((), tf.string),
-            'y': tf.FixedLenFeature((1, ), tf.float32),
-        }
+        return tf.cast(img_resize, tf.float32) / 256
 
-        parsed_features = tf.parse_single_example(example_proto, features)
+    image = tf.placeholder(tf.string, [None])
 
-        x1 = tf.decode_raw(parsed_features['x1'], out_type = tf.uint8)
-        x2 = tf.decode_raw(parsed_features['x2'], out_type = tf.uint8)
+    dataset = tf.data.Dataset.from_tensor_slices((image,))
+    dataset = dataset.map(map_fn, num_parallel_calls = 4)
+    # dataset = dataset.cache()
 
-        x1 = tf.cast(tf.reshape(x1, [200, 200, 3]), tf.float32)
-        x2 = tf.cast(tf.reshape(x2, [200, 200, 3]), tf.float32)
-
-        return x1, x2, parsed_features['y']
-
-    filenames = glob('data3/*')
-    random.shuffle(filenames)
-
-    dataset = tf.data.TFRecordDataset(filenames)
-    dataset = dataset.map(parse_fn, num_parallel_calls = 8)
-    dataset = dataset.shuffle(5000).repeat().batch(batch_size)
-
-    return dataset.make_one_shot_iterator().get_next()
+    return dataset, image
 
 def online_batch(batch_size):
 
-    def read_image(image1, image2, label):
+    img_dataset1, img1 = get_image_dataset()
+    img_dataset2, img2 = get_image_dataset()
 
-        image1 = tf.images.decode_bmp(image1, channels = 3)
-        image2 = tf.images.decode_bmp(image2, channels = 3)
+    label = tf.placeholder(tf.float32, [None])
+    label_dataset = tf.data.Dataset.from_tensor_slices(label)
 
-        return image1, image2, label
-
-    image1 = tf.placeholder(tf.string, [None])
-    image2  = tf.placeholder(tf.string, [None])
-    label  = tf.placeholder(tf.float32, [None])
-
-    dataset = tf.data.Dataset.from_tensor_slices((image1, image2, label))
-    dataset = dataset.map(read_image, num_parallel_calls = 8)
-    dataset = dataset.shuffle(5000).repeat(1).batch(batch_size)
+    dataset = tf.data.Dataset.zip((img_dataset1, img_dataset2, label_dataset))
+    dataset = dataset.shuffle(5000).batch(batch_size)
 
     iterator = dataset.make_initializable_iterator()
 
-    return iterator, image1, image2, label
+    return iterator, img1, img2, label
 
 # Generate image pairs and bounding box index
 #
@@ -80,9 +62,7 @@ def online_batch(batch_size):
 #   image1(numpy, shape = (data_size, ), dtype = string): first image path
 #   image2(numpy, shape = (data_size, ), dtype = string): second image path
 #   label (numpy, shape = (data_size, ), dtype = float): match or mismatch of image paires
-#   boxes1(numpy, shape = (data_size, ), dtype = int): bounding box index of first image
-#   boxes2(numpy, shape = (data_size, ), dtype = int): bounding box index of second image
-def generate_meta_data(data_size):
+def generate_image_pairs(data_size):
     image1 = []
     image2 = []
     label = []
@@ -114,10 +94,13 @@ def generate_meta_data(data_size):
         image2.append('data4/%02d/%02d.bmp' % (folder2, candidate2))
         label.append(1)
 
+    # shuffle image1, image2, label with the same permutation
+    pack = list(zip(image1, image2, label))
+    random.shuffle(pack)
+    image1, image2, label = zip(*pack)
+
     return (
         np.array(image1), np.array(image2), np.array(label).astype(float),
-        np.floor(np.random.uniform(0, 27, data_size)).astype(int),
-        np.floor(np.random.uniform(0, 27, data_size)).astype(int)
     )
 
 
@@ -125,8 +108,19 @@ if __name__ == '__main__':
 
     save_path = '%s/model.ckpt' % sys.argv[1]
 
-    x1, x2, y = next_batch(200)
-    y = tf.reshape(y, [-1])
+    boxes = np.load('bboxes.npy')
+    boxes_holder1 = tf.placeholder(tf.float32, [None, 4])
+    boxes_holder2 = tf.placeholder(tf.float32, [None, 4])
+    boxes_ind = [0]
+
+    while len(boxes_ind) < 200:
+        boxes_ind.append(boxes_ind[-1] + 1)
+
+    iterator, image_list1, image_list2, label_list = online_batch(200)
+    x1, x2, y = iterator.get_next()
+
+    x1 = tf.image.crop_and_resize(x1, boxes_holder1, boxes_ind, tf.constant((200, 200)))
+    x2 = tf.image.crop_and_resize(x2, boxes_holder2, boxes_ind, tf.constant((200, 200)))
 
     with tf.variable_scope('mobile_net_v2'):
         out1 = mobile_net_v2(x1, training = True)
@@ -147,12 +141,21 @@ if __name__ == '__main__':
     sess.run(tf.global_variables_initializer())
 
     saver = tf.train.Saver()
+    loss_val = None
 
-    for i in range(1, 15001):
+    for epoch in range(300):
 
-        loss_val, _  = sess.run([loss, train_step])
+        img_list1, img_list2, label = generate_image_pairs(10000)
+        sess.run(iterator.initializer, feed_dict = {image_list1: img_list1, image_list2: img_list2, label_list: label})
 
-        if i % 100 == 0:
-            print(i, np.mean(loss_val))
+        while True:
+            try:
+                loss_val, _ = sess.run([loss, train_step], feed_dict = {
+                    boxes_holder1: boxes[np.floor(np.random.uniform(0, 18, 200)).astype(int)],
+                    boxes_holder2: boxes[np.floor(np.random.uniform(0, 18, 200)).astype(int)],
+                })
+            except tf.errors.OutOfRangeError:
+                break
 
-            saver.save(sess, save_path)
+        print(epoch, np.mean(loss_val))
+        saver.save(sess, save_path)
