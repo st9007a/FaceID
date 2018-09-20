@@ -18,12 +18,14 @@ if __name__ == '__main__':
 
         for v in [-shift, 0, shift]:
             for h in [-shift, 0, shift]:
-                bboxes.append(
-                    [center[0] + v - s // 2 + offset[i][0],
-                     center[1] + h - s // 2 + offset[i][1],
-                     center[0] + v + s // 2 + offset[i][0],
-                     center[1] + h + s // 2 + offset[i][1]]
-                )
+                bboxes.append([
+                    center[0] + v - s // 2 + offset[i][0],
+                    center[1] + h - s // 2 + offset[i][1],
+                    s,
+                    s,
+                    # center[0] + v + s // 2 + offset[i][0],
+                    # center[1] + h + s // 2 + offset[i][1]
+                ])
 
     pprint(bboxes)
     np.save('./bboxes.npy', np.array(bboxes).astype(np.float32))
