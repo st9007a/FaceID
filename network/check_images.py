@@ -2,11 +2,13 @@
 import numpy as np
 from PIL import Image
 
-arr = np.load('test/test.npy')
+arr = np.load('x1.npy')
+print(arr.shape)
+print(arr.dtype)
 
 i = 0
 for img in arr:
 
-    res = Image.fromarray(img)
+    res = Image.fromarray(img.astype(np.uint8))
     res.save('img/%d.bmp' % i)
     i += 1

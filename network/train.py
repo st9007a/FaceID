@@ -53,7 +53,7 @@ def online_batch(batch_size):
     label_dataset = tf.data.Dataset.from_tensor_slices(label)
 
     dataset = tf.data.Dataset.zip((img_dataset1, img_dataset2, label_dataset))
-    dataset = dataset.shuffle(5000).batch(batch_size)
+    dataset = dataset.shuffle(2000).batch(batch_size)
 
     iterator = dataset.make_initializable_iterator()
 
@@ -126,10 +126,10 @@ if __name__ == '__main__':
     sess = tf.Session()
     sess.run(tf.global_variables_initializer())
 
-    saver = tf.train.Saver()
+    saver = tf.train.Saver(max_to_keep = 30)
     loss_val = None
 
-    for epoch in range(350):
+    for epoch in range(5000):
 
         img1_list, img2_list, label = generate_image_pairs(10000)
         rand_pick1 = np.floor(np.random.uniform(0, 18, 10000)).astype(int)
@@ -158,5 +158,7 @@ if __name__ == '__main__':
             except tf.errors.OutOfRangeError:
                 break
 
-        print(epoch, np.mean(loss_val))
-        saver.save(sess, save_path)
+        print(epoch + 1, np.mean(loss_val))
+
+        if (epoch + 1) % 100 == 0:
+            saver.save(sess, save_path, global_step = epoch + 1)

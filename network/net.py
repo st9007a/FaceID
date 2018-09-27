@@ -106,16 +106,16 @@ def mobile_net_v2(x, training):
     out = inverted_residual(out, name = 'bottleneck1', training = training, expand_factor = 1, output_channels = 32, subsample = True)
     out = inverted_residual(out, name = 'bottleneck2', training = training, expand_factor = 1, output_channels = 32)
 
-    out = inverted_residual(out, name = 'bottleneck3', training = training, expand_factor = 3, output_channels = 64, subsample = True)
-    out = inverted_residual(out, name = 'bottleneck4', training = training, expand_factor = 3, output_channels = 64)
+    out = inverted_residual(out, name = 'bottleneck3', training = training, expand_factor = 5, output_channels = 64, subsample = True)
+    out = inverted_residual(out, name = 'bottleneck4', training = training, expand_factor = 5, output_channels = 64)
 
-    out = inverted_residual(out, name = 'bottleneck5', training = training, expand_factor = 4, output_channels = 96, subsample = True)
-    out = inverted_residual(out, name = 'bottleneck6', training = training, expand_factor = 4, output_channels = 96)
+    out = inverted_residual(out, name = 'bottleneck5', training = training, expand_factor = 5, output_channels = 96, subsample = True)
+    out = inverted_residual(out, name = 'bottleneck6', training = training, expand_factor = 5, output_channels = 96)
 
-    out = inverted_residual(out, name = 'bottleneck7', training = training, expand_factor = 4, output_channels = 128, subsample = True)
-    out = inverted_residual(out, name = 'bottleneck8', training = training, expand_factor = 4, output_channels = 128)
+    out = inverted_residual(out, name = 'bottleneck7', training = training, expand_factor = 5, output_channels = 128, subsample = True)
+    out = inverted_residual(out, name = 'bottleneck8', training = training, expand_factor = 5, output_channels = 128)
 
-    out = inverted_residual(out, name = 'bottleneck9', training = training, expand_factor = 5, output_channels = 256)
+    out = inverted_residual(out, name = 'bottleneck9', training = training, expand_factor = 6, output_channels = 256)
 
     out = tf.layers.conv2d(out, filters = 1024, kernel_size = 1, name = 'conv2')
     out = tf.layers.batch_normalization(out, training = training, name = 'bn2')
