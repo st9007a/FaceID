@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
-import numpy as np
+import os
 from pprint import pprint
+
+import numpy as np
 
 height = 240
 width = 240
@@ -10,6 +12,9 @@ crop_size = [200, 166]
 offset = [[0, 0], [-15, 0]]
 
 if __name__ == '__main__':
+
+    if not os.path.isdir('tmp'):
+        os.makedirs('tmp')
 
     bboxes = []
 
@@ -28,4 +33,5 @@ if __name__ == '__main__':
                 ])
 
     pprint(bboxes)
-    np.save('./bboxes.npy', np.array(bboxes).astype(np.float32))
+    print('Generate bounding box and save to "./tmp/bboxes.npy"')
+    np.save('./tmp/bboxes.npy', np.array(bboxes).astype(np.float32))
