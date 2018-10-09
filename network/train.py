@@ -53,7 +53,7 @@ def online_batch(batch_size):
     label_dataset = tf.data.Dataset.from_tensor_slices(label)
 
     dataset = tf.data.Dataset.zip((img_dataset1, img_dataset2, label_dataset))
-    dataset = dataset.shuffle(2000).batch(batch_size)
+    dataset = dataset.shuffle(5000).batch(batch_size)
 
     iterator = dataset.make_initializable_iterator()
 
@@ -103,7 +103,7 @@ if __name__ == '__main__':
 
     save_path = '%s/model.ckpt' % sys.argv[1]
 
-    boxes = np.load('bboxes.npy')
+    boxes = np.load('./tmp/bboxes.npy')
 
     iterator, image1_list, image2_list, label_list, image1_crop_config, image2_crop_config = online_batch(200)
     x1, x2, y = iterator.get_next()
@@ -126,7 +126,7 @@ if __name__ == '__main__':
     sess = tf.Session()
     sess.run(tf.global_variables_initializer())
 
-    saver = tf.train.Saver(max_to_keep = 30)
+    saver = tf.train.Saver(max_to_keep = 40)
     loss_val = None
 
     for epoch in range(5000):
