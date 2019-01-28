@@ -44,7 +44,7 @@ export default {
       const output = this.inference(images.slice(i, i + batch))
 
       for (let j = 0; j < output.length; j += 128) {
-        ids.push(output.slice(i, i + 128))
+        ids.push(output.slice(j, j + 128))
       }
     }
 
