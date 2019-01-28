@@ -6,10 +6,12 @@ import './app.sass'
 import * as tf from '@tensorflow/tfjs'
 import { loadFrozenModel } from '@tensorflow/tfjs-converter'
 
+import faceModule from './face.js'
+
 window.$ = window.jQuery = require('jquery')
 
-const MODEL_URL = './model/tensorflowjs_model.pb'
-const WEIGHTS_URL = './model/weights_manifest.json'
+// const MODEL_URL = './model/tensorflowjs_model.pb'
+// const WEIGHTS_URL = './model/weights_manifest.json'
 
 const video = document.getElementsByTagName('video')[0]
 const canvas = document.getElementsByTagName('canvas')[0]
@@ -31,23 +33,22 @@ canvas.setAttribute('height', height)
 
 navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia
 
-loadFrozenModel(MODEL_URL, WEIGHTS_URL).then(main).catch(err => alert(err))
+faceModule.init().then(main).catch(err => console.log(err))
 
 function shapshot() {
   const context = canvas.getContext('2d')
   context.drawImage(video, 0, 0, width, height)
-  // tf.fromPixels(context.getImageData(60, 20, 200, 200)).print(1)
-  // return tf.fromPixels(context.getImageData(60, 20, 200, 200))
   return context.getImageData(60, 20, 200, 200)
 }
 
-function main(model) {
+function main() {
   const successCallback = (stream) => {
     video.srcObject = stream
   }
 
   const errorCallback = (error) => {
     console.log("navigator.getUserMedia error: ", error)
+    alert(error)
   }
 
   navigator.getUserMedia({audio: false, video: true}, successCallback, errorCallback)
@@ -65,14 +66,9 @@ function main(model) {
 
       $(e.currentTarget).text('Build Your Face ID ... ').ready(() => {
 
-        const input = tf.tidy(() => tf.cast(tf.stack(faceCollection.map(el => tf.fromPixels(el))), 'float32'))
-        const output = model.execute({ 'mobile_net_v2/face_input': input })
+        faceId = faceCollection.length >= 10 ? faceModule.transformMore(faceCollection) : faceModule.transform(faceCollection)
 
-        faceId = output.dataSync()
-
-        // $(e.currentTarget).text('Capture Your Face ID')
-        $(e.currentTarget).text(faceId.length / 128)
-        console.log(faceId.length / 128)
+        $(e.currentTarget).text(faceId.length)
 
         faceCollection.length = 0
       })
@@ -96,28 +92,24 @@ function main(model) {
       $(e.currentTarget).text('Stop validate').ready(() => {
 
         captureProcess = setInterval(() => {
-          const input = tf.tidy(() => tf.cast(tf.fromPixels(shapshot()).expandDims(), 'float32'))
-          const output = model.execute({ 'mobile_net_v2/face_input': input })
+          const target = faceModule.transform([shapshot()])[0]
 
-          const target = output.dataSync()
-
-          let dist = 0
           let vote = 0
 
           for (let i = 0; i < faceId.length; i++) {
+            let dist = 0
 
-            dist += Math.pow(faceId[i] - target[i % 128], 2)
-
-            if (i % 128 === 127) {
-              console.log(dist)
-              vote += Math.sqrt(dist) < 0.9 ? 1 : 0
-              dist = 0
+            for (let j = 0; j < 128; j++) {
+              dist += Math.pow(faceId[i][j] - target[j], 2)
             }
 
-          }
-          console.log(vote)
+            console.log('dist:', dist)
+            vote += Math.sqrt(dist) < 0.9 ? 1 : 0
 
-          if (vote >= faceId.length / 128 * 0.75) {
+          }
+          console.log('vote:', vote)
+
+          if (vote >= faceId.length * 0.75) {
             $('#validate').click()
             $('#lock').fadeOut('slow')
             $('#unlock').fadeIn('slow')
