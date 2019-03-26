@@ -8,6 +8,9 @@ from pprint import pprint
 
 from net import mobile_net_v2
 
+save_path = '%s/model.ckpt' % sys.argv[1]
+data_folder = sys.argv[2]
+
 def print_num_of_var():
     total_variables = 0
     for var in tf.trainable_variables():
@@ -73,8 +76,8 @@ def generate_image_pairs(data_size):
         while candidate2 == candidate1:
             candidate2 = random.randint(0, 50)
 
-        image1.append('data5/%02d/%02d.bmp' % (folder, candidate1))
-        image2.append('data5/%02d/%02d.bmp' % (folder, candidate2))
+        image1.append('%s/%02d/%02d.bmp' % (data_folder, folder, candidate1))
+        image2.append('%s/%02d/%02d.bmp' % (data_folder, folder, candidate2))
         label.append(0)
 
     for i in range(data_size - (data_size // 2)):
@@ -87,8 +90,8 @@ def generate_image_pairs(data_size):
         candidate1 = random.randint(0, 50)
         candidate2 = random.randint(0, 50)
 
-        image1.append('data5/%02d/%02d.bmp' % (folder1, candidate1))
-        image2.append('data5/%02d/%02d.bmp' % (folder2, candidate2))
+        image1.append('%s/%02d/%02d.bmp' % (data_folder, folder1, candidate1))
+        image2.append('%s/%02d/%02d.bmp' % (data_folder, folder2, candidate2))
         label.append(1)
 
     # shuffle image1, image2, label with the same permutation
@@ -101,7 +104,6 @@ def generate_image_pairs(data_size):
 
 if __name__ == '__main__':
 
-    save_path = '%s/model.ckpt' % sys.argv[1]
 
     boxes = np.load('./tmp/bboxes.npy')
 
