@@ -35,7 +35,7 @@ def resize_and_save(file_name, save_name):
 
 if __name__ == '__main__':
 
-    file_dirs = glob('face_train/*')
+    file_dirs = glob('dataset/train/*')
 
     for i, file_dir in enumerate(file_dirs):
 

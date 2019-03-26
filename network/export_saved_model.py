@@ -9,6 +9,7 @@ if __name__ == '__main__':
 
     import_dir = sys.argv[1]
     export_dir = sys.argv[2]
+    step = sys.argv[3]
 
     with tf.variable_scope('mobile_net_v2'):
         face_input = tf.placeholder(tf.float32, [None, 200, 200, 3], name = 'face_input')
@@ -17,7 +18,7 @@ if __name__ == '__main__':
     sess = tf.Session()
     saver = tf.train.Saver()
 
-    saver.restore(sess, '%s/model.ckpt' % import_dir)
+    saver.restore(sess, '%s/model.ckpt-%s' % (import_dir, step))
 
     builder = tf.saved_model.builder.SavedModelBuilder(export_dir)
 
