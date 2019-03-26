@@ -48,7 +48,7 @@ function main() {
 
   const errorCallback = (error) => {
     console.log("navigator.getUserMedia error: ", error)
-    alert(error)
+    alert('Your browser doesn\'t support WebRTC API')
   }
 
   navigator.getUserMedia({audio: false, video: true}, successCallback, errorCallback)
