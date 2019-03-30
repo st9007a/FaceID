@@ -10,9 +10,6 @@ import faceModule from './face.js'
 
 window.$ = window.jQuery = require('jquery')
 
-// const MODEL_URL = './model/tensorflowjs_model.pb'
-// const WEIGHTS_URL = './model/weights_manifest.json'
-
 const video = document.getElementsByTagName('video')[0]
 const canvas = document.getElementsByTagName('canvas')[0]
 
@@ -60,18 +57,17 @@ function main() {
 
     if (isCapture) {
       $(e.currentTarget).text('Stop')
-      captureProcess = setInterval(() => faceCollection.push(shapshot()), 500)
+      captureProcess = setInterval(() => faceCollection.push(shapshot()), 200)
     } else {
       clearInterval(captureProcess)
 
-      $(e.currentTarget).text('Build Your Face ID ... ').ready(() => {
+      $(e.currentTarget).text('Build Your Face ID ... ')
 
+      setTimeout(() => {
         faceId = faceCollection.length >= 10 ? faceModule.transformMore(faceCollection) : faceModule.transform(faceCollection)
-
         $(e.currentTarget).text(faceId.length)
-
         faceCollection.length = 0
-      })
+      }, 2000)
 
     }
   })
