@@ -22,7 +22,11 @@ export default {
     let obj = {}
     obj[this.entry] = this.images2tensor(images)
 
-    return model.execute(obj).dataSync()
+    result = model.execute(obj).dataSync()
+
+    obj[this.entry].dispose()
+
+    return result
   },
 
   transform: function(images) {
@@ -47,7 +51,6 @@ export default {
         ids.push(output.slice(j, j + 128))
       }
     }
-
     return ids
   }
 }
