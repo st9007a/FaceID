@@ -22,9 +22,11 @@ export default {
     let obj = {}
     obj[this.entry] = this.images2tensor(images)
 
-    result = model.execute(obj).dataSync()
+    const modelOutput = model.execute(obj)
+    const result = modelOutput.dataSync()
 
     obj[this.entry].dispose()
+    modelOutput.dispose()
 
     return result
   },
