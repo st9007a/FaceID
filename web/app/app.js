@@ -32,7 +32,7 @@ navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia 
 
 faceModule.init().then(main).catch(err => console.log(err))
 
-function shapshot() {
+function snapshot() {
   const context = canvas.getContext('2d')
   context.drawImage(video, 0, 0, width, height)
   return context.getImageData(60, 20, 200, 200)
@@ -57,7 +57,7 @@ function main() {
 
     if (isCapture) {
       $(e.currentTarget).text('Stop')
-      captureProcess = setInterval(() => faceCollection.push(shapshot()), 200)
+      captureProcess = setInterval(() => faceCollection.push(snapshot()), 200)
     } else {
       clearInterval(captureProcess)
 
