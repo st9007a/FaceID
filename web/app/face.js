@@ -43,7 +43,7 @@ export default {
   },
 
   transformMore: function(images) {
-    const batch = 5
+    const batch = 8
     const ids = []
 
     for (let i = 0; i < images.length; i += batch) {
