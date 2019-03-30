@@ -88,7 +88,7 @@ function main() {
       $(e.currentTarget).text('Stop validate').ready(() => {
 
         captureProcess = setInterval(() => {
-          const target = faceModule.transform([shapshot()])[0]
+          const target = faceModule.transform([snapshot()])[0]
 
           let vote = 0
 
