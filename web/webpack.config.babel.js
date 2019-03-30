@@ -6,6 +6,16 @@ const config = {
   context: resolve('app'),
   entry: './app.js',
   module: {
+    defaultRules: [
+      {
+        type: 'javascript/auto',
+        resolve: {},
+      },
+      {
+        test: /\.json$/i,
+        type: 'json',
+      }
+    ],
     rules: [
       {
         test: /\.pug$/,
@@ -41,6 +51,10 @@ const config = {
           { loader: 'style-loader', options: { insertAt: 'top' } },
           { loader: 'css-loader' },
         ],
+      },
+      {
+        test: /\.wasm$/,
+        use: 'wasm-loader',
       },
     ],
   },

@@ -32,6 +32,19 @@ navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia 
 
 faceModule.init().then(main).catch(err => console.log(err))
 
+async function buildOCSVM(features) {
+  const SVM = await require('libsvm-js')
+  const ocsvm = new SVM({
+    kernel: SVM.KERNEL_TYPES.RBF,
+    type: SVM.SVM_TYPES.ONE_CLASS,
+    gamma: 1,
+    nu: 0.15,
+  })
+
+  ocsvm.train(features)
+  return ocsvm
+}
+
 function snapshot() {
   const context = canvas.getContext('2d')
   context.drawImage(video, 0, 0, width, height)
