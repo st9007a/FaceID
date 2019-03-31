@@ -54,7 +54,9 @@ const config = {
       },
       {
         test: /\.wasm$/,
-        use: 'wasm-loader',
+        use: [
+          { loader: 'url-loader', options: { name: '[name].wasm', limit: 1 } },
+        ],
       },
     ],
   },

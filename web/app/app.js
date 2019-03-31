@@ -3,10 +3,8 @@ import './index.pug'
 import 'semantic-ui-offline/semantic.css'
 import './app.sass'
 
-import * as tf from '@tensorflow/tfjs'
-import { loadFrozenModel } from '@tensorflow/tfjs-converter'
-
 import faceModule from './face.js'
+import svmModule from './svm.js'
 
 window.$ = window.jQuery = require('jquery')
 
@@ -30,20 +28,7 @@ canvas.setAttribute('height', height)
 
 navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia
 
-faceModule.init().then(main).catch(err => console.log(err))
-
-async function buildOCSVM(features) {
-  const SVM = await require('libsvm-js')
-  const ocsvm = new SVM({
-    kernel: SVM.KERNEL_TYPES.RBF,
-    type: SVM.SVM_TYPES.ONE_CLASS,
-    gamma: 1,
-    nu: 0.15,
-  })
-
-  ocsvm.train(features)
-  return ocsvm
-}
+Promise.all([svmModule.init(), faceModule.init()]).then(main).catch(err => console.log(err))
 
 function snapshot() {
   const context = canvas.getContext('2d')
@@ -78,6 +63,8 @@ function main() {
 
       setTimeout(() => {
         faceId = faceCollection.length >= 10 ? faceModule.transformMore(faceCollection) : faceModule.transform(faceCollection)
+        $(e.currentTarget).text('Build One Class SVM ...')
+        svmModule.buildOCSVM(faceId)
         $(e.currentTarget).text(faceId.length)
         faceCollection.length = 0
       }, 2000)
@@ -102,23 +89,11 @@ function main() {
 
         captureProcess = setInterval(() => {
           const target = faceModule.transform([snapshot()])[0]
+          const prediction = svmModule.predict(target[0])
 
-          let vote = 0
+          console.log(prediction)
 
-          for (let i = 0; i < faceId.length; i++) {
-            let dist = 0
-
-            for (let j = 0; j < 128; j++) {
-              dist += Math.pow(faceId[i][j] - target[j], 2)
-            }
-
-            console.log('dist:', dist)
-            vote += Math.sqrt(dist) < 0.9 ? 1 : 0
-
-          }
-          console.log('vote:', vote)
-
-          if (vote >= faceId.length * 0.75) {
+          if (prediction !== -1) {
             $('#validate').click()
             $('#lock').fadeOut('slow')
             $('#unlock').fadeIn('slow')
