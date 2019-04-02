@@ -93,7 +93,7 @@ function main() {
 
           console.log(prediction)
 
-          if (prediction !== -1) {
+          if (prediction === 1) {
             $('#validate').click()
             $('#lock').fadeOut('slow')
             $('#unlock').fadeIn('slow')

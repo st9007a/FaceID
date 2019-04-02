@@ -32,8 +32,8 @@ export default {
     this.model = new SVM({
       kernel: SVM.KERNEL_TYPES.RBF,
       type: SVM.SVM_TYPES.ONE_CLASS,
-      gamma: 0.8,
-      nu: 0.2,
+      gamma: 10,
+      nu: 0.05,
     })
 
     const labels = []
