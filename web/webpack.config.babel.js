@@ -4,18 +4,10 @@ import { resolve } from 'path'
 const config = {
   mode: 'development',
   context: resolve('app'),
-  entry: './app.js',
+  entry: {
+    app: './app.js',
+  },
   module: {
-    defaultRules: [
-      {
-        type: 'javascript/auto',
-        resolve: {},
-      },
-      {
-        test: /\.json$/i,
-        type: 'json',
-      }
-    ],
     rules: [
       {
         test: /\.pug$/,
@@ -54,6 +46,7 @@ const config = {
       },
       {
         test: /\.wasm$/,
+        type: 'javascript/auto',
         use: [
           { loader: 'url-loader', options: { name: '[name].wasm', limit: 1 } },
         ],
