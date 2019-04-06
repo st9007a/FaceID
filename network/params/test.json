@@ -1,0 +1,51 @@
+{
+  "alpha": 0.8,
+  "embedding_dim": 128,
+  "bottleneck": [
+    {
+      "expand_factor": 1,
+      "output_channels": 32,
+      "subsample": true
+    },
+    {
+      "expand_factor": 1,
+      "output_channels": 32,
+      "subsample": false
+    },
+    {
+      "expand_factor": 4,
+      "output_channels": 64,
+      "subsample": true
+    },
+    {
+      "expand_factor": 4,
+      "output_channels": 64,
+      "subsample": false
+    },
+    {
+      "expand_factor": 4,
+      "output_channels": 96,
+      "subsample": true
+    },
+    {
+      "expand_factor": 4,
+      "output_channels": 96,
+      "subsample": false
+    },
+    {
+      "expand_factor": 4,
+      "output_channels": 128,
+      "subsample": true
+    },
+    {
+      "expand_factor": 4,
+      "output_channels": 128,
+      "subsample": false
+    },
+    {
+      "expand_factor": 5,
+      "output_channels": 256,
+      "subsample": false
+    }
+  ]
+}
